@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tasks</title>
+<style>
+  :root{
+    --ink:#1c2128;
+    --ink-soft:#4a5261;
+    --paper:#f6f4f0;
+    --card:#ffffff;
+    --line:#e4e0d8;
+    --amber:#c07d2b;
+    --amber-deep:#9a6420;
+    --green:#3f7d5c;
+    --danger:#b5493f;
+    --shadow: 0 1px 2px rgba(28,33,40,.04), 0 8px 24px rgba(28,33,40,.06);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #fbf3e6 0%, transparent 55%),
+      var(--paper);
+    color:var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:64px 20px 80px;
+  }
+  .wrap{ width:100%; max-width:560px; }
+
+  header{ margin-bottom:28px; }
+  .kicker{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom:6px;
+  }
+  h1{
+    font-size:28px; font-weight:700; letter-spacing:-0.01em; margin:0;
+  }
+  .date{ font-size:13px; color:var(--ink-soft); }
+  .progress-row{
+    display:flex; align-items:center; gap:12px; margin-top:18px;
+  }
+  .progress-track{
+    flex:1; height:6px; border-radius:99px; background:var(--line); overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; border-radius:99px;
+    background: linear-gradient(90deg, var(--amber), var(--green));
+    width:0%;
+    transition: width .35s ease;
+  }
+  .progress-label{ font-size:12px; color:var(--ink-soft); white-space:nowrap; font-variant-numeric: tabular-nums; }
+
+  form{
+    display:flex; gap:8px; margin-bottom:22px;
+  }
+  input[type="text"]{
+    flex:1;
+    padding:13px 15px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--card);
+    font-size:15px;
+    color:var(--ink);
+    outline:none;
+    box-shadow: var(--shadow);
+    transition: border-color .15s ease;
+  }
+  input[type="text"]::placeholder{ color:#9a978e; }
+  input[type="text"]:focus{ border-color: var(--amber); }
+  button.add{
+    padding:0 18px;
+    border:none;
+    border-radius:var(--radius);
+    background:var(--ink);
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition: transform .1s ease, background .15s ease;
+  }
+  button.add:hover{ background:#000; }
+  button.add:active{ transform: scale(.97); }
+
+  .filters{
+    display:flex; gap:6px; margin-bottom:14px;
+  }
+  .filters button{
+    border:none; background:transparent; color:var(--ink-soft);
+    font-size:13px; font-weight:600; padding:6px 10px; border-radius:99px;
+    cursor:pointer;
+  }
+  .filters button.active{ background:var(--card); color:var(--ink); box-shadow: var(--shadow); }
+
+  ul.list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+
+  li.item{
+    display:flex; align-items:flex-start; gap:12px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 14px;
+    box-shadow: var(--shadow);
+    animation: rise .25s ease;
+  }
+  @keyframes rise{ from{ opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .check{
+    flex:0 0 auto;
+    width:20px; height:20px; margin-top:1px;
+    border-radius:6px;
+    border:1.5px solid #c9c5ba;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    background:#fff;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .check svg{ width:12px; height:12px; opacity:0; transition:opacity .1s ease; }
+  li.done .check{ background:var(--green); border-color:var(--green); }
+  li.done .check svg{ opacity:1; }
+
+  .content{ flex:1; min-width:0; }
+  .text{
+    font-size:15px; line-height:1.4; word-break:break-word;
+    color:var(--ink);
+  }
+  li.done .text{ color:#9a978e; text-decoration: line-through; }
+  .meta{ font-size:11.5px; color:#a29d90; margin-top:3px; }
+
+  .del{
+    flex:0 0 auto;
+    border:none; background:transparent; color:#c3bfb4;
+    cursor:pointer; padding:4px; border-radius:6px; font-size:16px; line-height:1;
+    transition:color .15s ease, background .15s ease;
+  }
+  .del:hover{ color:var(--danger); background:#f7ece9; }
+
+  .empty{
+    text-align:center; padding:48px 20px; color:var(--ink-soft);
+    border:1px dashed var(--line); border-radius:var(--radius);
+  }
+  .empty strong{ display:block; color:var(--ink); font-size:15px; margin-bottom:4px; }
+  .empty span{ font-size:13px; }
+
+  footer{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:18px; font-size:12.5px; color:var(--ink-soft);
+  }
+  footer button{
+    border:none; background:transparent; color:var(--ink-soft);
+    font-size:12.5px; cursor:pointer; text-decoration:underline; padding:0;
+  }
+  footer button:hover{ color:var(--danger); }
+
+  @media (prefers-reduced-motion: reduce){
+    li.item{ animation:none; }
+    .progress-fill{ transition:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="kicker">
+        <h1>Tasks</h1>
+        <span class="date" id="today"></span>
+      </div>
+      <div class="progress-row">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <span class="progress-label" id="progressLabel">0 of 0 done</span>
+      </div>
+    </header>
+
+    <form id="addForm">
+      <input type="text" id="taskInput" placeholder="Add a task…" autocomplete="off" maxlength="200">
+      <button type="submit" class="add">Add</button>
+    </form>
+
+    <div class="filters" id="filters">
+      <button data-filter="all" class="active">All</button>
+      <button data-filter="active">Active</button>
+      <button data-filter="done">Completed</button>
+    </div>
+
+    <ul class="list" id="list"></ul>
+
+    <div class="empty" id="empty" style="display:none;">
+      <strong>Nothing here</strong>
+      <span>Add a task above to get started.</span>
+    </div>
+
+    <footer>
+      <span id="countLabel"></span>
+      <button id="clearDone">Clear completed</button>
+    </footer>
+  </div>
+
+<script>
+(function(){
+  const STORAGE_KEY = "tasks.v1";
+  let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  let filter = "all";
+
+  const list = document.getElementById("list");
+  const empty = document.getElementById("empty");
+  const form = document.getElementById("addForm");
+  const input = document.getElementById("taskInput");
+  const filters = document.getElementById("filters");
+  const countLabel = document.getElementById("countLabel");
+  const clearDone = document.getElementById("clearDone");
+  const progressFill = document.getElementById("progressFill");
+  const progressLabel = document.getElementById("progressLabel");
+  const todayEl = document.getElementById("today");
+
+  todayEl.textContent = new Date().toLocaleDateString(undefined, { weekday:'long', month:'short', day:'numeric' });
+
+  function save(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  }
+
+  function uid(){
+    return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  }
+
+  function render(){
+    const visible = tasks.filter(t => filter === "all" ? true : filter === "active" ? !t.done : t.done);
+
+    list.innerHTML = "";
+    visible.forEach(t => {
+      const li = document.createElement("li");
+      li.className = "item" + (t.done ? " done" : "");
+      li.dataset.id = t.id;
+      li.innerHTML = `
+        <div class="check" role="checkbox" aria-checked="${t.done}" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <div class="content">
+          <div class="text"></div>
+        </div>
+        <button class="del" aria-label="Delete task">✕</button>
+      `;
+      li.querySelector(".text").textContent = t.text;
+      list.appendChild(li);
+    });
+
+    empty.style.display = visible.length === 0 ? "block" : "none";
+
+    const doneCount = tasks.filter(t => t.done).length;
+    const total = tasks.length;
+    countLabel.textContent = total === 0 ? "" : (total - doneCount) + " remaining";
+    progressLabel.textContent = doneCount + " of " + total + " done";
+    progressFill.style.width = total === 0 ? "0%" : Math.round((doneCount/total)*100) + "%";
+  }
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const value = input.value.trim();
+    if (!value) return;
+    tasks.unshift({ id: uid(), text: value, done: false });
+    input.value = "";
+    save(); render();
+  });
+
+  list.addEventListener("click", e => {
+    const li = e.target.closest("li.item");
+    if (!li) return;
+    const id = li.dataset.id;
+    if (e.target.closest(".check")){
+      const t = tasks.find(t => t.id === id);
+      t.done = !t.done;
+      save(); render();
+    } else if (e.target.closest(".del")){
+      tasks = tasks.filter(t => t.id !== id);
+      save(); render();
+    }
+  });
+
+  list.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " "){
+      const check = e.target.closest(".check");
+      if (check){
+        e.preventDefault();
+        check.click();
+      }
+    }
+  });
+
+  filters.addEventListener("click", e => {
+    const btn = e.target.closest("button[data-filter]");
+    if (!btn) return;
+    filter = btn.dataset.filter;
+    [...filters.children].forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  clearDone.addEventListener("click", () => {
+    tasks = tasks.filter(t => !t.done);
+    save(); render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
